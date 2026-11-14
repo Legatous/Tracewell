@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tracewell — live demo</title>
+<style>
+  :root {
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background-color: #000;
+    color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    min-height: 100%;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  a { cursor: pointer; text-decoration: none; color: inherit; }
+  button { cursor: pointer; font-family: inherit; }
+
+  .logo { cursor: pointer; }
+
+  .btn-submit {
+    background-color: #fff;
+    color: #000;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+  .btn-submit:hover { background-color: rgba(255,255,255,0.85); color: #000; }
+
+  .nav-link {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 10px;
+    border-radius: 20px;
+    transition: background-color 0.15s ease;
+    font-size: 13px;
+  }
+  .nav-link:hover { background-color: rgba(255,255,255,0.1); }
+  .nav-link.active { color: #fff; }
+  .nav-link:not(.active) { color: rgba(255,255,255,0.55); }
+
+  .text-link {
+    color: rgba(255,255,255,0.6);
+    cursor: pointer;
+    transition: color 0.15s ease;
+    font-size: 11px;
+  }
+  .text-link:hover { color: #fff; }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 0.5px solid rgba(255,255,255,0.1);
+    padding: 12px 16px;
+  }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .logo-mark { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; }
+  nav.primary { display: flex; gap: 4px; }
+
+  .page-tabs { display: flex; justify-content: center; gap: 4px; padding: 10px 16px 0; }
+  .page-tab {
+    border: none;
+    background: none;
+    color: rgba(255,255,255,0.5);
+    font-size: 11px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+  .page-tab:hover { background-color: rgba(255,255,255,0.08); }
+  .page-tab.active { color: #fff; background-color: rgba(255,255,255,0.1); }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  .hero { max-width: 480px; margin: 0 auto; padding: 36px 16px 10px; text-align: center; }
+  .hero h1 { font-size: 22px; font-weight: 500; line-height: 1.3; margin: 0; }
+  .hero .sub { color: rgba(255,255,255,0.5); font-size: 12px; margin-top: 8px; }
+
+  .mode-tabs { display: flex; justify-content: center; gap: 2px; margin-top: 22px; font-size: 12px; }
+  .mode-tab {
+    border: none;
+    background: none;
+    color: rgba(255,255,255,0.45);
+    border-bottom: 2px solid transparent;
+    padding: 6px 10px;
+    transition: color 0.15s ease, border-color 0.15s ease;
+  }
+  .mode-tab.active { color: #fff; border-color: #fff; }
+
+  .scan-row { display: flex; gap: 8px; margin-top: 14px; max-width: 320px; margin-left: auto; margin-right: auto; }
+  .scan-row input {
+    flex: 1;
+    background: transparent;
+    border: 0.5px solid rgba(255,255,255,0.15);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 13px;
+    color: #fff;
+  }
+  .scan-row input:focus { outline: none; border-color: rgba(255,255,255,0.4); }
+  .scan-btn {
+    white-space: nowrap;
+    border: none;
+    border-radius: 6px;
+    background: #fff;
+    color: #000;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 8px 12px;
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+  .scan-btn:hover { background-color: rgba(255,255,255,0.7); }
+
+  .upload-box {
+    max-width: 320px;
+    margin: 14px auto 0;
+    border: 1px dashed rgba(255,255,255,0.2);
+    border-radius: 6px;
+    padding: 22px 14px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.45);
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s ease;
+  }
+  .upload-box:hover { border-color: rgba(255,255,255,0.4); }
+
+  .result-box {
+    max-width: 400px;
+    margin: 20px auto 0;
+    background: #0a0a0a;
+    border: 0.5px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: left;
+    overflow: visible;
+  }
+  .result-placeholder { font-size: 11px; color: rgba(255,255,255,0.3); margin-top: 20px; }
+
+  .canvas { position: relative; height: 500px; touch-action: pan-y; }
+  .drag-panel {
+    position: absolute;
+    left: 0; top: 0;
+    background: #000;
+    border: 0.5px solid rgba(255,255,255,0.12);
+    border-radius: 12px;
+    padding: 12px;
+    transform-origin: top left;
+    touch-action: none;
+  }
+  .drag-panel.site-panel { padding: 12px 12px 18px; }
+  .drag-grip {
+    display: flex; align-items: center; gap: 4px;
+    font-size: 9px; color: rgba(255,255,255,0.35);
+    cursor: grab; touch-action: none; user-select: none;
+    margin-bottom: 8px; padding-bottom: 6px;
+    border-bottom: 0.5px dashed rgba(255,255,255,0.1);
+  }
+  .drag-grip:active { cursor: grabbing; }
+  .resize-handle {
+    position: absolute;
+    width: 20px; height: 20px;
+    right: -9px; bottom: -9px;
+    border-radius: 50%;
+    background: #fff; color: #000;
+    border: 2px solid #000;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px;
+    cursor: nwse-resize;
+    touch-action: none;
+    z-index: 10;
+  }
+
+  .score-row { display: flex; align-items: center; gap: 14px; }
+  .score-ring {
+    position: relative;
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .score-ring svg { width: 56px; height: 56px; transform: rotate(-90deg); }
+  .score-ring .track { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 4; }
+  .score-ring .fill { fill: none; stroke: #e8c76a; stroke-width: 4; stroke-linecap: round; transition: stroke-dasharray 0.6s ease; }
+  .score-num {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 500;
+  }
+  .score-label-title { font-size: 12px; font-weight: 500; }
+  .score-label-sub { font-size: 10px; color: rgba(255,255,255,0.45); margin-top: 2px; }
+
+  .metric-tiles { display: flex; gap: 8px; margin-top: 14px; }
+  .metric-tile { flex: 1; background: #151515; border-radius: 8px; padding: 8px 10px; }
+  .metric-tile-label { font-size: 9px; color: rgba(255,255,255,0.45); display: flex; align-items: center; gap: 4px; }
+  .metric-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+  .metric-tile-value { font-size: 13px; font-weight: 500; margin-top: 3px; }
+  .metric-bar { height: 4px; border-radius: 2px; background: rgba(255,255,255,0.1); margin-top: 6px; overflow: hidden; }
+  .metric-bar-fill { height: 100%; border-radius: 2px; }
+
+  .findings { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .finding { display: flex; gap: 8px; align-items: flex-start; }
+  .finding-icon {
+    width: 16px; height: 16px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; flex-shrink: 0; margin-top: 1px;
+  }
+  .finding-text { font-size: 11px; line-height: 1.5; color: rgba(255,255,255,0.75); }
+
+  .site-mock {
+    position: relative;
+    background: #fff;
+    color: #111;
+    border-radius: 8px;
+    overflow: visible;
+    font-size: 9px;
+    margin-top: 2px;
+  }
+  .site-mock-inner { border-radius: 8px; overflow: hidden; }
+  .sm-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border-bottom: 1px solid #eee; font-weight: 600; font-size: 10px; }
+  .sm-banner {
+    background: linear-gradient(90deg,#2b2f36,#454c57);
+    color: #fff; padding: 14px 10px; position: relative;
+  }
+  .sm-banner-title { font-size: 12px; font-weight: 700; }
+  .sm-banner-sub { font-size: 8px; color: #cfd3d8; margin-top: 2px; }
+  .sm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 8px; }
+  .sm-card { border: 1px solid #eee; border-radius: 5px; padding: 6px; }
+  .sm-card-img { height: 28px; background: #f0f0f0; border-radius: 3px; margin-bottom: 4px; }
+  .sm-card-title { font-size: 8px; font-weight: 600; }
+  .sm-card-price { font-size: 8px; color: #666; margin-top: 2px; }
+  .sm-buy-btn { margin-top: 5px; background: #111; color: #fff; font-size: 7.5px; text-align: center; border-radius: 3px; padding: 3px; font-weight: 600; }
+  .sm-spec-link { font-size: 7px; color: #2563eb; margin-top: 3px; text-decoration: underline; }
+  .sm-trade-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; background: #f7f7f7; border-top: 1px solid #eee; font-size: 8px; }
+  .sm-lock { font-size: 9px; }
+
+  .callout {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: #000;
+    border: 0.5px solid rgba(255,255,255,0.2);
+    border-radius: 5px;
+    padding: 3px 7px;
+    font-size: 8.5px;
+    font-weight: 500;
+    color: #fff;
+    white-space: nowrap;
+    z-index: 3;
+  }
+  .callout.warn { color: #e8c76a; }
+  .callout.good { color: #3ddc84; }
+  .callout-dot {
+    position: absolute;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    border: 2px solid #000;
+    z-index: 4;
+    cursor: pointer;
+  }
+  .callout-dot.warn { background: #e8c76a; }
+  .callout-dot.good { background: #3ddc84; }
+  .callout-dot::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    border: 1px solid transparent;
+  }
+  .callout-dot.dot-selected::after { border-color: #fff; }
+  .callout-dot.dot-selected { transform: scale(1.3); }
+  .callout-line {
+    position: absolute;
+    border-top: 1px dashed rgba(255,255,255,0.35);
+    transform-origin: left center;
+    z-index: 2;
+  }
+
+  @keyframes flyTop { from { opacity: 0; transform: translateY(-16px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes flyLeft { from { opacity: 0; transform: translateX(-16px); } to { opacity: 1; transform: translateX(0); } }
+  @keyframes flyRight { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: translateX(0); } }
+  @keyframes flyBottom { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes popScore { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: scale(1); } }
+  @keyframes dotPop { from { opacity: 0; transform: scale(0); } to { opacity: 1; transform: scale(1); } }
+  @keyframes lineGrow { from { opacity: 0; } to { opacity: 1; } }
+
+  .anim-score { opacity: 0; animation: popScore 0.4s ease forwards; }
+  .anim-tiles { opacity: 0; animation: flyTop 0.4s ease forwards; }
+  .anim-mock { opacity: 0; animation: popScore 0.4s ease forwards; }
+  .anim-line { opacity: 0; animation: lineGrow 0.3s ease forwards; }
+  .anim-dot { opacity: 0; animation: dotPop 0.3s ease forwards; }
+
+  .pct-chip {
+    position: absolute;
+    background: #000;
+    border: 0.5px solid rgba(255,255,255,0.25);
+    border-radius: 20px;
+    padding: 3px 8px;
+    font-size: 9px;
+    font-weight: 500;
+    z-index: 5;
+    opacity: 0;
+  }
+  .pct-chip.warn { color: #e8c76a; border-color: rgba(232,199,106,0.4); }
+  .pct-chip.good { color: #3ddc84; border-color: rgba(61,220,132,0.4); }
+
+  .click-scale { margin-top: 16px; padding-top: 12px; border-top: 0.5px dashed rgba(255,255,255,0.1); }
+  .click-scale-label { display: flex; justify-content: space-between; font-size: 10.5px; color: rgba(255,255,255,0.6); }
+  .click-scale-label strong { color: #fff; font-weight: 500; }
+  .click-scale-sub { font-size: 9px; color: rgba(255,255,255,0.35); margin-top: 2px; }
+  .click-track {
+    position: relative;
+    height: 6px;
+    border-radius: 3px;
+    margin-top: 10px;
+    background: linear-gradient(90deg, #e24b4a 0%, #e8c76a 50%, #3ddc84 100%);
+  }
+  .click-dim {
+    position: absolute;
+    top: 0; right: 0; height: 100%;
+    width: 100%;
+    background: rgba(0,0,0,0.6);
+    border-radius: 0 3px 3px 0;
+    transition: width 0.7s ease;
+  }
+  .click-thumb {
+    position: absolute;
+    top: 50%; left: 0%;
+    width: 13px; height: 13px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid #000;
+    transform: translate(-50%, -50%);
+    transition: left 0.7s ease;
+  }
+  .click-scale-ends { display: flex; justify-content: space-between; font-size: 8.5px; color: rgba(255,255,255,0.3); margin-top: 5px; }
+
+  .tip-box {
+    margin-top: 14px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    background: #151515;
+    border-radius: 10px;
+    padding: 10px 12px;
+    border: 0.5px solid rgba(255,255,255,0.08);
+  }
+  .tip-box .tip-icon { font-size: 16px; line-height: 1; }
+  .tip-box .tip-title { font-size: 11px; font-weight: 500; color: #fff; }
+  .tip-box .tip-body { font-size: 10.5px; color: rgba(255,255,255,0.55); line-height: 1.5; margin-top: 2px; }
+  .tip-box .tip-hint { font-size: 10.5px; color: rgba(255,255,255,0.4); }
+
+  .custom-link { font-size: 11px; color: rgba(255,255,255,0.4); text-align: center; margin-top: 16px; }
+  .custom-link a { color: rgba(255,255,255,0.75); text-decoration: underline; text-underline-offset: 2px; transition: color 0.15s ease; }
+  .custom-link a:hover { color: #fff; }
+
+  .chevron {
+    display: flex;
+    justify-content: center;
+    padding: 18px 0 8px;
+  }
+  .chevron a {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 0.5px solid rgba(255,255,255,0.15);
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(255,255,255,0.5);
+    transition: border-color 0.15s ease, color 0.15s ease;
+  }
+  .chevron a:hover { border-color: rgba(255,255,255,0.4); color: #fff; }
+
+  .steps {
+    border-top: 0.5px solid rgba(255,255,255,0.1);
+    margin-top: 10px;
+    padding: 26px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    text-align: center;
+  }
+  .step-title { font-size: 12px; font-weight: 500; }
+  .step-desc { font-size: 10.5px; color: rgba(255,255,255,0.45); margin-top: 4px; line-height: 1.5; }
+
+  main { max-width: 480px; margin: 0 auto; padding: 20px 16px 40px; }
+  h1 { font-size: 18px; font-weight: 500; margin: 0; }
+  .subtitle { color: rgba(255,255,255,0.5); font-size: 12px; margin-top: 4px; line-height: 1.5; }
+
+  .grid { margin-top: 20px; display: flex; flex-direction: column; gap: 10px; }
+  .card {
+    border: 0.5px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 14px;
+    background: #0a0a0a;
+    transition: border-color 0.15s ease;
+  }
+  .card-top { display: flex; justify-content: space-between; align-items: start; gap: 8px; }
+  .card-title { font-size: 13px; font-weight: 500; line-height: 1.4; }
+  .tag {
+    white-space: nowrap;
+    border: 0.5px solid rgba(255,255,255,0.1);
+    border-radius: 6px;
+    padding: 2px 6px;
+    font-size: 9px;
+    color: rgba(255,255,255,0.5);
+  }
+  .meta { color: rgba(255,255,255,0.4); font-size: 10px; margin-top: 4px; }
+  .desc { color: rgba(255,255,255,0.65); font-size: 11px; line-height: 1.5; margin-top: 8px; }
+  .stats { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .stat { background: #151515; border-radius: 6px; padding: 6px 10px; }
+  .stat-label { color: rgba(255,255,255,0.4); font-size: 9px; }
+  .stat-value { font-size: 11px; font-weight: 500; margin-top: 1px; }
+
+  .view-btn {
+    margin-top: 12px;
+    border: 0.5px solid rgba(255,255,255,0.15);
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 11px;
+    background: transparent;
+    color: #fff;
+    transition: background-color 0.15s ease;
+  }
+  .view-btn:hover { background-color: rgba(255,255,255,0.08); }
+
+  footer {
+    border-top: 0.5px solid rgba(255,255,255,0.1);
+    margin-top: 30px;
+    padding: 20px 16px;
+    text-align: center;
+  }
+  footer nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; }
+  .copyright { color: rgba(255,255,255,0.3); font-size: 10px; margin-top: 10px; }
+
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    z-index: 50;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    max-height: 85vh;
+    width: 100%;
+    max-width: 440px;
+    overflow-y: auto;
+    border-radius: 14px;
+    border: 0.5px solid rgba(255,255,255,0.1);
+    background: #000;
+  }
+  .modal-mock {
+    border-bottom: 0.5px solid rgba(255,255,255,0.1);
+    background: #0a0a0a;
+    padding: 16px;
+  }
+  .modal-mock-inner {
+    border-radius: 8px;
+    border: 0.5px solid rgba(255,255,255,0.1);
+    background: #fff;
+    color: #000;
+    padding: 14px;
+  }
+  .modal-mock-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .modal-mock-cta { background: #000; color: #fff; border-radius: 5px; padding: 4px 10px; font-size: 10px; font-weight: 500; }
+  .modal-body { padding: 16px; }
+  .modal-head { display: flex; justify-content: space-between; align-items: start; gap: 10px; }
+  .modal-close { background: none; border: none; color: rgba(255,255,255,0.5); font-size: 16px; line-height: 1; padding: 2px; }
+  .modal-close:hover { color: #fff; }
+  .modal-section { margin-top: 16px; }
+  .modal-section h3 {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: rgba(255,255,255,0.4);
+    margin: 0 0 4px;
+    font-weight: 500;
+  }
+  .modal-section p { font-size: 12px; line-height: 1.6; color: rgba(255,255,255,0.75); margin: 0; }
+
+  .chat-bubble {
+    position: fixed;
+    bottom: 18px;
+    right: 18px;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: #1d6fe0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+    border: none;
+    transition: transform 0.15s ease;
+  }
+  .chat-bubble:hover { transform: scale(1.06); background: #1d6fe0; }
+  .chat-bubble svg { width: 22px; height: 22px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <a href="#" class="logo logo-mark">
+      <span aria-hidden="true">▮▮</span>Tracewell
+    </a>
+    <nav class="primary">
+      <a href="#" class="nav-link">Landing page</a>
+      <a href="#" class="nav-link">Online store</a>
+      <a href="#" class="nav-link">Popups</a>
+    </nav>
+  </div>
+  <a href="#" class="btn-submit">Register</a>
+</header>
+
+<div class="page-tabs">
+  <button class="page-tab active" onclick="showPage('home')">Home</button>
+  <button class="page-tab" onclick="showPage('store')">Online store</button>
+</div>
+
+<div class="page active" id="page-home">
+  <div class="hero">
+    <h1>Point it at your app. Get a diagnosis, not a chart.</h1>
+    <p class="sub">Paste a live URL, or upload your project files.</p>
+
+    <div class="mode-tabs">
+      <button class="mode-tab active" id="tab-url" onclick="setMode('url')">URL</button>
+      <button class="mode-tab" id="tab-upload" onclick="setMode('upload')">Upload files</button>
+    </div>
+
+    <div id="mode-url-view">
+      <div class="scan-row">
+        <input type="text" id="urlInput" placeholder="ironforge-tools.com">
+        <button class="scan-btn" onclick="runScan()">Run scan ↗</button>
+      </div>
+    </div>
+    <div id="mode-upload-view" style="display:none">
+      <div class="upload-box" onclick="runScan()">Drop a .zip of your project here, or click to browse</div>
+    </div>
+
+    <div id="resultArea">
+      <p class="result-placeholder">Results appear here once a scan runs.</p>
+    </div>
+
+    <p class="custom-link">Need something custom instead? <a href="#">Tell us what you're building</a></p>
+
+    <div class="chevron"><a href="#howitworks" aria-label="Scroll to how it works">⌄</a></div>
+  </div>
+
+  <div class="steps" id="howitworks">
+    <div>
+      <div class="step-title">1. Install</div>
+      <div class="step-desc">Paste a URL or drop your project files.</div>
+    </div>
+    <div>
+      <div class="step-title">2. See real data</div>
+      <div class="step-desc">Performance, funnels, and errors, straight from your app.</div>
+    </div>
+    <div>
+      <div class="step-title">3. Get prioritized fixes</div>
+      <div class="step-desc">AI suggestions linked to the exact marketplace tool that fixes it.</div>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-store">
+  <main>
+    <h1>Online store</h1>
+    <p class="subtitle">Tracewell for stores: checkout funnel drop-off, cart abandonment, and product-page engagement. Click a card's button below — this is a real working modal, not a picture of one.</p>
+
+    <div class="grid" id="cardGrid"></div>
+  </main>
+</div>
+
+<footer>
+  <nav>
+    <a href="#" class="text-link">Terms of service</a>
+    <a href="#" class="text-link">Privacy policy</a>
+    <a href="#" class="text-link">Cookies</a>
+    <a href="#" class="text-link">Contact</a>
+  </nav>
+  <div class="copyright">© 2026 Tracewell</div>
+</footer>
+
+<button class="chat-bubble" aria-label="Open chat" onclick="alert('This is where your real Tawk.to widget bubble will render once you add your Property ID and Widget ID.')">
+  <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+  </svg>
+</button>
+
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-mock">
+      <div class="modal-mock-inner">
+        <div class="modal-mock-top">
+          <strong id="modalCompany" style="font-size:12px"></strong>
+          <span class="modal-mock-cta">Contact Us</span>
+        </div>
+        <div style="font-size:16px;font-weight:bold">Lorem ipsum dolor sit amet</div>
+        <div style="font-size:11px;color:#666;margin-top:4px">Consectetur adipiscing elit, sed do eiusmod tempor incididunt.</div>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="modal-head">
+        <div>
+          <div id="modalTitle" style="font-size:14px;font-weight:500"></div>
+          <div id="modalMeta" style="font-size:10px;color:rgba(255,255,255,0.5);margin-top:3px"></div>
+        </div>
+        <button class="modal-close" onclick="closeModal()" aria-label="Close">✕</button>
+      </div>
+      <div id="modalStats" class="stats" style="margin-top:12px"></div>
+      <div class="modal-section">
+        <h3>What we found</h3>
+        <p id="modalDesc"></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.page-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+
+function setMode(mode) {
+  document.getElementById('tab-url').classList.toggle('active', mode === 'url');
+  document.getElementById('tab-upload').classList.toggle('active', mode === 'upload');
+  document.getElementById('mode-url-view').style.display = mode === 'url' ? 'block' : 'none';
+  document.getElementById('mode-upload-view').style.display = mode === 'upload' ? 'block' : 'none';
+}
+
+const scanResult = {
+  score: 61,
+  metrics: [
+    { label: 'Page speed', value: '2.7s to load', pct: 80, color: '#e8c76a', status: 'above target' },
+    { label: 'Feels responsive', value: 'Yes, quick taps', pct: 40, color: '#3ddc84', status: 'good' }
+  ],
+  findings: [
+    { severity: 'warn', text: 'Product spec sheet PDF loads 1.2MB on every listing page' },
+    { severity: 'warn', text: 'Bulk/trade pricing hidden behind a login, 14% drop-off there' },
+    { severity: 'good', text: 'Lazy-load the 400+ SKU grid, saves ~900ms LCP' },
+    { severity: 'good', text: 'Surface "in stock near you" earlier, cuts cart abandonment' }
+  ],
+  clickability: 47
+};
+
+const tips = {
+  banner: { icon: '🖥️', title: 'This banner is slowing things down', body: 'The big sale image takes an extra moment to show up, so people wait before they see anything else. Shrinking it would get the page moving about 420ms faster.' },
+  button: { icon: '✅', title: 'This button is working great', body: 'High contrast, easy to spot, no changes needed here. This is a good example for the rest of the page to follow.' },
+  spec: { icon: '📄', title: 'This file is too heavy', body: 'The spec sheet downloads automatically even if nobody asked for it, adding over a megabyte to the page. Only load it when someone actually opens that tab.' },
+  trade: { icon: '🔒', title: 'This pricing is hidden away', body: 'Visitors have to sign in just to see trade pricing, so some leave before ever seeing a number. About 14% of them never come back.' }
+};
+
+function showTip(key) {
+  const tip = tips[key];
+  const box = document.getElementById('tipBox');
+  if (!box) return;
+  box.innerHTML = `<div class="tip-icon">${tip.icon}</div><div><div class="tip-title">${tip.title}</div><div class="tip-body">${tip.body}</div></div>`;
+  box.classList.add('tip-active');
+  document.querySelectorAll('.callout-dot').forEach(d => d.classList.remove('dot-selected'));
+  const dot = document.getElementById('dot-' + key);
+  if (dot) dot.classList.add('dot-selected');
+}
+
+function applyTransform(panel) {
+  const x = panel.dataset.x || 0;
+  const y = panel.dataset.y || 0;
+  const s = panel.dataset.scale || 1;
+  panel.style.transform = `translate(${x}px, ${y}px) scale(${s})`;
+}
+
+function makeDraggable(panel, handle) {
+  panel.dataset.x = panel.dataset.x || 0;
+  panel.dataset.y = panel.dataset.y || 0;
+  handle.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    handle.setPointerCapture(e.pointerId);
+    const startX = e.clientX, startY = e.clientY;
+    const origX = parseFloat(panel.dataset.x), origY = parseFloat(panel.dataset.y);
+    function onMove(ev) {
+      panel.dataset.x = origX + (ev.clientX - startX);
+      panel.dataset.y = origY + (ev.clientY - startY);
+      applyTransform(panel);
+    }
+    function onUp() {
+      handle.removeEventListener('pointermove', onMove);
+      handle.removeEventListener('pointerup', onUp);
+    }
+    handle.addEventListener('pointermove', onMove);
+    handle.addEventListener('pointerup', onUp);
+  });
+}
+
+function makeResizable(panel, handle) {
+  panel.dataset.scale = panel.dataset.scale || 1;
+  handle.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handle.setPointerCapture(e.pointerId);
+    const startX = e.clientX;
+    const origScale = parseFloat(panel.dataset.scale);
+    function onMove(ev) {
+      let next = origScale + (ev.clientX - startX) / 160;
+      next = Math.min(1.6, Math.max(0.55, next));
+      panel.dataset.scale = next;
+      applyTransform(panel);
+    }
+    function onUp() {
+      handle.removeEventListener('pointermove', onMove);
+      handle.removeEventListener('pointerup', onUp);
+    }
+    handle.addEventListener('pointermove', onMove);
+    handle.addEventListener('pointerup', onUp);
+  });
+}
+
+function runScan() {
+  const urlMode = document.getElementById('tab-url').classList.contains('active');
+  if (urlMode && !document.getElementById('urlInput').value.trim()) return;
+  const area = document.getElementById('resultArea');
+
+  const circumference = 2 * Math.PI * 24;
+  const dash = (scanResult.score / 100) * circumference;
+
+  area.innerHTML = `
+    <div class="result-box">
+      <div class="canvas">
+        <div class="drag-panel" id="statsPanel" style="width:230px;">
+          <div class="drag-grip">⠇⠇ drag • corner to resize</div>
+          <div class="score-row anim-score">
+            <div class="score-ring">
+              <svg viewBox="0 0 56 56">
+                <circle class="track" cx="28" cy="28" r="24"></circle>
+                <circle class="fill" cx="28" cy="28" r="24" stroke-dasharray="${dash} ${circumference}"></circle>
+              </svg>
+              <div class="score-num">${scanResult.score}</div>
+            </div>
+            <div>
+              <div class="score-label-title">Could use some work</div>
+              <div class="score-label-sub">Fixing 2 things would really help</div>
+            </div>
+          </div>
+          <div class="metric-tiles anim-tiles" style="animation-delay:0.1s">
+            ${scanResult.metrics.map(m => `
+              <div class="metric-tile">
+                <div class="metric-tile-label"><span class="metric-dot" style="background:${m.color}"></span>${m.label}</div>
+                <div class="metric-tile-value">${m.value}</div>
+                <div class="metric-bar"><div class="metric-bar-fill" data-pct="${m.pct}" style="width:0%;background:${m.color};transition:width 0.6s ease"></div></div>
+              </div>
+            `).join('')}
+          </div>
+          <div class="resize-handle">⤡</div>
+        </div>
+
+        <div class="drag-panel site-panel" id="sitePanel" style="width:288px; left:0px; top:200px;">
+          <div class="drag-grip">⠇⠇ drag • corner to resize</div>
+          <div class="mock-wrap" style="position:relative;width:288px;height:200px;">
+            <svg style="position:absolute;inset:0;width:100%;height:100%;overflow:visible" viewBox="0 0 288 200" preserveAspectRatio="none">
+              <line class="anim-line" style="animation-delay:0.5s" x1="198" y1="40" x2="236" y2="26" stroke="rgba(232,199,106,0.65)" stroke-width="1" stroke-dasharray="3 3"></line>
+              <line class="anim-line" style="animation-delay:0.65s" x1="88" y1="120" x2="52" y2="108" stroke="rgba(61,220,132,0.65)" stroke-width="1" stroke-dasharray="3 3"></line>
+              <line class="anim-line" style="animation-delay:0.8s" x1="188" y1="124" x2="236" y2="114" stroke="rgba(232,199,106,0.65)" stroke-width="1" stroke-dasharray="3 3"></line>
+              <line class="anim-line" style="animation-delay:0.95s" x1="140" y1="138" x2="112" y2="166" stroke="rgba(232,199,106,0.65)" stroke-width="1" stroke-dasharray="3 3"></line>
+            </svg>
+
+            <div class="site-mock anim-mock" style="position:absolute;left:54px;top:0;width:180px;animation-delay:0.25s">
+              <div class="site-mock-inner">
+                <div class="sm-header"><span>IRONFORGE</span><span>Cart (0)</span></div>
+                <div class="sm-banner">
+                  <div class="sm-banner-title">Winter tool sale</div>
+                  <div class="sm-banner-sub">Up to 30% off power tools</div>
+                </div>
+                <div class="sm-grid">
+                  <div class="sm-card">
+                    <div class="sm-card-img"></div>
+                    <div class="sm-card-title">Cordless drill</div>
+                    <div class="sm-card-price">$89.00</div>
+                    <div class="sm-buy-btn">Buy now</div>
+                  </div>
+                  <div class="sm-card">
+                    <div class="sm-card-img"></div>
+                    <div class="sm-card-title">Angle grinder</div>
+                    <div class="sm-card-price">$64.00</div>
+                    <div class="sm-spec-link">View specs (1.2MB)</div>
+                  </div>
+                </div>
+                <div class="sm-trade-row"><span>🔒 Trade pricing</span><span>Sign in</span></div>
+              </div>
+            </div>
+
+            <div class="callout-dot warn anim-dot" id="dot-banner" onclick="showTip('banner')" style="left:194px;top:36px;animation-delay:0.55s"></div>
+            <div class="callout warn anim-dot" style="left:236px;top:18px;animation-delay:0.55s">Slow banner</div>
+            <div class="pct-chip warn" style="left:198px;top:4px;animation:flyTop 0.35s ease forwards;animation-delay:0.6s">+420ms</div>
+
+            <div class="callout-dot good anim-dot" id="dot-button" onclick="showTip('button')" style="left:84px;top:116px;animation-delay:0.7s"></div>
+            <div class="callout good anim-dot" style="left:0px;top:98px;animation-delay:0.7s">Working well</div>
+            <div class="pct-chip good" style="left:-10px;top:124px;animation:flyLeft 0.35s ease forwards;animation-delay:0.75s">0%</div>
+
+            <div class="callout-dot warn anim-dot" id="dot-spec" onclick="showTip('spec')" style="left:184px;top:120px;animation-delay:0.85s"></div>
+            <div class="callout warn anim-dot" style="left:236px;top:104px;animation-delay:0.85s">Heavy file</div>
+            <div class="pct-chip warn" style="left:244px;top:130px;animation:flyRight 0.35s ease forwards;animation-delay:0.9s">1.2MB</div>
+
+            <div class="callout-dot warn anim-dot" id="dot-trade" onclick="showTip('trade')" style="left:136px;top:134px;animation-delay:1s"></div>
+            <div class="callout warn anim-dot" style="left:76px;top:168px;animation-delay:1s">Pricing hidden</div>
+            <div class="pct-chip warn" style="left:150px;top:180px;animation:flyBottom 0.35s ease forwards;animation-delay:1.05s">-14%</div>
+          </div>
+
+          <div class="tip-box" id="tipBox"><span class="tip-hint">👆 Tap a glowing dot above to see what it means</span></div>
+
+          <div class="click-scale">
+            <div class="click-scale-label">Overall clickability <strong>${scanResult.clickability}%</strong></div>
+            <div class="click-scale-sub">3 of 4 scanned elements add friction before a click</div>
+            <div class="click-track">
+              <div class="click-dim" id="clickDim"></div>
+              <div class="click-thumb" id="clickThumb"></div>
+            </div>
+            <div class="click-scale-ends"><span>Low</span><span>High</span></div>
+          </div>
+
+          <div class="resize-handle">⤡</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      area.querySelectorAll('.metric-bar-fill').forEach(bar => {
+        bar.style.width = bar.getAttribute('data-pct') + '%';
+      });
+      const thumb = area.querySelector('#clickThumb');
+      const dim = area.querySelector('#clickDim');
+      if (thumb && dim) {
+        thumb.style.left = scanResult.clickability + '%';
+        dim.style.width = (100 - scanResult.clickability) + '%';
+      }
+    });
+  });
+
+  const statsPanel = area.querySelector('#statsPanel');
+  const sitePanel = area.querySelector('#sitePanel');
+  makeDraggable(statsPanel, statsPanel.querySelector('.drag-grip'));
+  makeResizable(statsPanel, statsPanel.querySelector('.resize-handle'));
+  makeDraggable(sitePanel, sitePanel.querySelector('.drag-grip'));
+  makeResizable(sitePanel, sitePanel.querySelector('.resize-handle'));
+}
+
+const items = [
+  {
+    title: "Ironforge Tools — bulk pricing unlock",
+    meta: "Hardware / trade supply · scanned Jan 2026 · 2-week engagement",
+    desc: "Bulk and trade pricing was hidden behind an account login, so first-time contractor buyers never saw volume discounts before abandoning. Surfaced a 'sign in to see trade pricing' prompt directly on the product grid instead of a dead end.",
+    stats: [
+      { label: "Trade signups", value: "+26%" },
+      { label: "Cart abandonment", value: "-14%" }
+    ]
+  },
+  {
+    title: "Marrow and Bolt — spec sheet load fix",
+    meta: "Hardware ecommerce · scanned Dec 2025 · 1-week engagement",
+    desc: "Every product listing eagerly loaded a 1.2MB PDF spec sheet on page load, even when most visitors were just browsing. Deferred the PDF to load only when the 'Specs' tab was opened, cutting initial page weight substantially.",
+    stats: [
+      { label: "Mobile LCP", value: "2.7s → 1.3s" },
+      { label: "Listing bounce rate", value: "-9%" }
+    ]
+  }
+];
+
+const grid = document.getElementById("cardGrid");
+items.forEach((item, i) => {
+  const card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML = `
+    <div class="card-top">
+      <div class="card-title">${item.title}</div>
+      <span class="tag">Case study</span>
+    </div>
+    <div class="meta">${item.meta}</div>
+    <div class="desc">${item.desc}</div>
+    <div class="stats">
+      ${item.stats.map(s => `<div class="stat"><div class="stat-label">${s.label}</div><div class="stat-value">${s.value}</div></div>`).join("")}
+    </div>
+    <button class="view-btn" onclick="openModal(${i})">View case study</button>
+  `;
+  grid.appendChild(card);
+});
+
+function openModal(i) {
+  const item = items[i];
+  document.getElementById("modalCompany").textContent = item.title.split("—")[0].trim();
+  document.getElementById("modalTitle").textContent = item.title;
+  document.getElementById("modalMeta").textContent = item.meta;
+  document.getElementById("modalDesc").textContent = item.desc;
+  document.getElementById("modalStats").innerHTML = item.stats.map(s =>
+    `<div class="stat"><div class="stat-label">${s.label}</div><div class="stat-value">${s.value}</div></div>`
+  ).join("");
+  document.getElementById("modalOverlay").classList.add("open");
+}
+function closeModal(e) {
+  if (e && e.target !== e.currentTarget) return;
+  document.getElementById("modalOverlay").classList.remove("open");
+}
+</script>
+
+</body>
+</html>
